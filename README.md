@@ -1,10 +1,6 @@
 # TM_Teammusic with Django x Amazon Web Services
 > Final Project Cloud Computing
 
-### UseCase Diagram
-
-![usecase diagram](image/usecase.png)
-
 ### Amazon Web Services (AWS)
 
 ![AWS](image/awscloud.png)
@@ -26,3 +22,7 @@
 5. การเข้าถึงข้อมูลผ่าน Lambda:
 •	เมื่อ User ทำการเลือกไฟล์เสียง, Lambda จะทำงานเพื่อดึงข้อมูล metadata ที่เกี่ยวข้องจาก DynamoDB และดึงไฟล์เสียงจาก S3 เพื่อให้ CloudFront นำไปสตรีมให้ลูกค้า
 •	Lambda จะมีบทบาทในการประมวลผลส่วนนี้เพื่อลดภาระของ EC2 และเพื่อเพิ่มความยืดหยุ่นในการจัดการกับการดึงข้อมูลไฟล์
+
+### UseCase Diagram
+
+![usecase diagram](image/usecase.png)
