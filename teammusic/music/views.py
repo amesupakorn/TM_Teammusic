@@ -8,3 +8,15 @@ class MainView(View):
         return render(request, "index.html",{
             
         })
+        
+class Artlist(View):
+    def get(self, request):
+        return render(request, "artlist.html",{
+            
+        })
+        
+class Albums(View):
+     def get(self, request):
+        return render(request, "album.html",{
+            
+        })

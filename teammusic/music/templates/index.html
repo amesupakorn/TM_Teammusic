@@ -1,19 +1,211 @@
-{% load static tailwind_tags %}
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-    <title>Django Tailwind</title>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<meta http-equiv="X-UA-Compatible" content="ie=edge">
-		{% tailwind_css %}
-	</head>
+{% extends "layout.html" %}
+{% load static %}
+{% block content %}
 
-	<body class="bg-gray-50 font-serif leading-normal tracking-normal">
-		<div class="container mx-auto">
-			<section class="flex items-center justify-center h-screen">
-				<h1 class="text-5xl">Django + Tailwind = ❤️</h1>
-			</section>
-		</div>
-	</body>
-</html>
+        <!-- Main Content -->
+        <div class="flex-grow p-8 gradient-background">
+			<div>
+				<h2 class="text-2xl font-bold mb-2">Popular Artists</h2>
+				<div class="flex space-x-2 overflow-x-auto">
+					<!-- Artist Card -->
+					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl" onclick="window.location.href='{% url 'artist' %}'">
+						<img src="{% static 'img/Taylor.png' %}" alt="Taylor Swift" class="w-42
+						h-42
+						object-cover rounded-full mx-auto">
+						
+						<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+						<div class="mt-4 text-left">
+							<span class="font-bold text-white block text-sm">Taylor Swift</span>
+							<p class="text-gray-400 text-xs">Artist</p>
+						</div>
+						
+						<!-- ปุ่ม Play ที่มุมขวาล่าง -->
+						<div class="absolute bottom-16 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
+						</div>
+					</div>
+					
+			
+					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl">
+						<img src="{% static 'img/Beyonce.png' %}" alt="Beyoncé" class="w-42
+						 h-42
+						 object-cover rounded-full mx-auto">
+						 <div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+						 <div class="mt-4 text-left">
+							<span class="font-bold text-white block text-sm">Beyoncé</span>
+							<p class="text-gray-400 text-xs">Artist</p>
+						</div>
+						<div class="absolute bottom-16 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
+						</div>
+					</div>
+			
+					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl">
+						<img src="{% static 'img/lisa.webp' %}" alt="Lisa" class="w-42
+						 h-42
+						 object-cover rounded-full mx-auto">
+						 <div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+						 <div class="mt-4 text-left">
+							<span class="font-bold text-white block text-sm">LISA</span>
+							<p class="text-gray-400 text-xs">Artist</p>
+						</div>
+						<div class="absolute bottom-16 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
+						</div>
+					</div>
+			
+					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl">
+						<img src="{% static 'img/Drake.png' %}" alt="Drake" class="w-42
+						 h-42
+						 object-cover rounded-full mx-auto">
+						<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+						<div class="mt-4 text-left">
+							<span class="font-bold text-white block text-sm">Drake</span>
+							<p class="text-gray-400 text-xs">Artist</p>
+						</div>
+						<div class="absolute bottom-16 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
+						</div>
+					</div>
+			
+					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl">
+						<img src="{% static 'img/Ed.png' %}" alt="Ed Sheeran" class="w-42 h-42 object-cover rounded-full mx-auto">
+						<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+						<div class="mt-4 text-left">
+							<span class="font-bold text-white block text-sm">Ed Sheeran</span>
+							<p class="text-gray-400 text-xs">Artist</p>
+						</div>
+						<div class="absolute bottom-16 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
+						</div>
+					</div>
+
+					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl">
+						<img src="{% static 'img/olivia.png' %}" alt="olivia" class="w-42 h-42 object-cover rounded-full mx-auto">
+						<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+						<div class="mt-4 text-left">
+							<span class="font-bold text-white block text-sm">Olivia Rodrigo</span>
+							<p class="text-gray-400 text-xs">Artist</p>
+						</div>
+						<div class="absolute bottom-16 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+
+            <!-- Popular Albums Section -->
+            <div class="mt-10">
+                <h2 class="text-2xl font-bold mb-4">Popular Albums</h2>
+				<div class="flex space-x-2 overflow-x-auto">
+                    <!-- Album Card -->
+					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl">
+						<img src="{% static "img/Lalisa.jpg" %}" class="rounded-2xl w-full h-40 object-cover mb-2">
+
+					
+						<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+						<div class="mt-4 text-left">
+							<span class="font-bold text-white block text-sm">Rockstart</span>
+							<p class="text-gray-400 text-xs">LISA</p>
+						</div>
+						
+						<!-- ปุ่ม Play ที่มุมขวาล่าง -->
+						<div class="absolute bottom-28 right-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
+						</div>
+					</div>
+
+					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl">
+						<img src="{% static "img/TTPD.jpg"%}" class="rounded-2xl w-full h-40 object-cover mb-2">
+					
+						<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+						<div class="mt-4 text-left">
+							<span class="font-bold text-white block text-sm">THE TORTURED POETS DEPARTMENT: THE ANTHOLOGY</span>
+							<p class="text-gray-400 text-xs">Taylor Swift</p>
+						</div>
+						
+						<!-- ปุ่ม Play ที่มุมขวาล่าง -->
+						<div class="absolute bottom-28 right-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
+						</div>
+					</div>
+            
+					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl">
+						<img src="{% static "img/Olivia.jpg" %}" class="rounded-2xl w-full h-40 object-cover mb-2">
+					
+						<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+						<div class="mt-4 text-left">
+							<span class="font-bold text-white block text-sm">GUTS</span>
+							<p class="text-gray-400 text-xs">Olivia Rodrigo</p>
+						</div>
+						
+						<!-- ปุ่ม Play ที่มุมขวาล่าง -->
+						<div class="absolute bottom-28 right-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
+						</div>
+					</div>
+
+					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl">
+                        <img src="{% static "img/Gracie.jpg" %}" class="rounded-2xl w-full h-40 object-cover mb-2">
+					
+						<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+						<div class="mt-4 text-left">
+							<span class="font-bold text-white block text-sm">The Secret of Us</span>
+							<p class="text-gray-400 text-xs">Gracie Abrams</p>
+						</div>
+						
+						<!-- ปุ่ม Play ที่มุมขวาล่าง -->
+						<div class="absolute bottom-28 right-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
+						</div>
+					</div>
+
+					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl">
+                        <img src="{% static "img/short.webp" %}" class="rounded-2xl w-full h-40 object-cover mb-2">
+					
+						<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+						<div class="mt-4 text-left">
+							<span class="font-bold text-white block text-sm">Short n' Sweet</span>
+							<p class="text-gray-400 text-xs">Sabrina Carpenter</p>
+						</div>
+						
+						<!-- ปุ่ม Play ที่มุมขวาล่าง -->
+						<div class="absolute bottom-28 right-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
+						</div>
+					</div>
+
+					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl">
+                        <img src="{% static "img/rise.webp" %}" class="rounded-2xl w-full h-40 object-cover mb-2">
+					
+						<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+						<div class="mt-4 text-left">
+							<span class="font-bold text-white block text-sm">The Rise and Fall of a Midwest Princess</span>
+							<p class="text-gray-400 text-xs">Chappell Roan</p>
+						</div>
+						
+						<!-- ปุ่ม Play ที่มุมขวาล่าง -->
+						<div class="absolute bottom-28 right-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
+						</div>
+					</div>
+    
+                </div>
+                
+            </div>
+        </div>
+    </div>
+{% endblock %}
