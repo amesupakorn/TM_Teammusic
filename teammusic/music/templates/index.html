@@ -1,6 +1,24 @@
 {% extends "layout.html" %}
 {% load static %}
 {% block content %}
+		<div class="flex items-center mt-4">
+			{% if messages %}
+				<div id="message-box" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 bg-white shadow-lg rounded-lg p-4 text-center transition-opacity duration-1000 inline-block max-w-full">
+					{% for message in messages %}
+						<div class="relative flex items-center justify-center space-x-2 {% if message.tags == 'error' %} text-red-500 {% elif message.tags == 'success' %} text-green-500 {% endif %}">
+							<div class="text-sm font-medium">{{ message }}</div>
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+								{% if message.tags == 'error' %}
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+								{% elif message.tags == 'success' %}
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+								{% endif %}
+							</svg>
+						</div>
+					{% endfor %}
+				</div>
+			{% endif %}
+		</div>
 
         <!-- Main Content -->
         <div class="flex-grow p-8 gradient-background">

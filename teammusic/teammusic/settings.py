@@ -131,3 +131,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+COGNITO_USER_POOL_ID = 'us-east-1_iSgM4iZSt'
+COGNITO_CLIENT_ID = '61m4jo670rg1lt1r7f6cjp1nr0' 
+COGNITO_REGION = 'us-east-1'
+
