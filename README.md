@@ -3,7 +3,7 @@
 
 ### Amazon Web Services (AWS)
 
-![AWS](image/awscloud.png)
+![AWS](image/awscloud.jpg)
 
     การจัดการกับการสตรีมเสียงผ่านบริการ AWS โดยใช้หลายบริการร่วมกัน ได้แก่ Cognito, EC2, Lambda, S3, DynamoDB และ CloudFront โดยแยกการทำงานระหว่าง Admin และ User ได้ดังนี้:
 1. Admin เข้าสู่ระบบ:
