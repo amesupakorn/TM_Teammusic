@@ -10,8 +10,7 @@ class Singer(models.Model):
     birth_date = models.DateField(blank=True, null=True)    # วันเกิดนักร้อง
     country = models.CharField(max_length=50, blank=True, null=True) # ประเทศที่นักร้องมาจาก
     biography = models.TextField(blank=True, null=True)     # ประวัตินักร้อง
-    s3_photourl = models.URLField(max_length=255, blank=True, null=True) # URL ของไฟล์เพลงที่เก็บใน S3
-    
+    s3_photourl = models.ImageField(upload_to='img/', blank=True, null=True)
     
     def __str__(self):
         return self.name
@@ -21,7 +20,7 @@ class Album(models.Model):
     singer = models.ForeignKey(Singer, on_delete=models.CASCADE, related_name="albums") # ลิงก์ไปยัง Singer
     title = models.CharField(max_length=100)              # ชื่ออัลบั้ม
     release_date = models.DateField(blank=True, null=True) # วันที่ปล่อยอัลบั้ม
-    s3_alblumurl = models.URLField(max_length=255, blank=True, null=True) # URL ของไฟล์เพลงที่เก็บใน S3
+    s3_alblumurl = models.ImageField(upload_to='img/', blank=True, null=True)
 
     def __str__(self):
         return self.title

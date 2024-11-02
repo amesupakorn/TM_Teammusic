@@ -44,24 +44,47 @@ class MainView(View):
         
 class Artlist(View):
     def get(self, request, id):
+        # ตรวจสอบว่า session มี access_token หรือไม่
         if request.session.get('access_token'):
             access_token = request.session.get('access_token')
             username = get_username_from_access_token(access_token) if access_token else None
         else:
             username = ''
-            
+        
+        # ดึงข้อมูลนักร้อง อัลบั้ม และเพลงทั้งหมดของนักร้องนี้
         singer = Singer.objects.get(id=id)
-        album_ids = Album.objects.filter(singer_id=id).values_list('id', flat=True)  # ดึงรายการ id ของอัลบั้ม
-        print(album_ids)
-        songs = Song.objects.filter(album_id__in=album_ids)  # ใช้ __in เพื่อดึงเพลงทั้งหมดที่อยู่ในอัลบั้มเหล่านี้
+        albums = Album.objects.filter(singer=singer)
+        songs = Song.objects.filter(album__in=albums)
+
+        # สร้างรายการเพลง (song list) เป็น dictionary
+        song_list = [
+            {
+                'title': song.title,
+                'album': song.album.title,
+                'albumCover': song.album.s3_alblumurl.url if song.album.s3_alblumurl else '',  
+                'singer': singer.name,
+                'songUrl': song.s3_url
+            }
+            for song in songs
+        ]
+
+        # ข้อมูลเพิ่มเติม เช่น จำนวนเพลง เพลงแรก และเพลงแบบสุ่ม
         countSong = songs.count()
-        return render(request, "artlist.html",{
-            'username' : username,
+        firstsongs = songs.first()
+        songrandom = songs.order_by('?').first()
+
+        context = {
+            'username': username,
             'singer': singer,
+            'albums': albums,
             'songs': songs,
-            'countSong': countSong
-            
-        })
+            'countSong': countSong,
+            'firstsongs': firstsongs,
+            'songrandom': songrandom,
+            'song_list': song_list  # ส่งรายการเพลงไปยัง template
+        }
+
+        return render(request, "artlist.html", context)
         
 class Albums(View):
     
@@ -73,10 +96,22 @@ class Albums(View):
             username = ''
             
         album = Album.objects.get(id=id)
+        songs = Song.objects.filter(album_id=id)  
+        singer = album.singer  # ใช้ album.singer เพื่อดึงข้อมูลนักร้องที่เกี่ยวข้อง
+        firstsongs = songs.first()
+        countSong = songs.count()
+        songrandom = songs.order_by('?').first()
+
+
 
         return render(request, "album.html",{
             'username' : username,
-            'album' : album
+            'album' : album,
+            'songs' : songs,
+            'countSong': countSong,
+            'singer' : singer,
+            'firstsongs' : firstsongs,
+            'songrandom': songrandom
         })
 
 
@@ -108,8 +143,7 @@ class SignIn(View):
             request.session['access_token'] = access_token
 
             messages.success(request, 'Login successful')
-            return render(request, "index.html",{
-                })
+            return redirect('home')
 
         
         except cognito_client.exceptions.NotAuthorizedException: 
@@ -189,6 +223,7 @@ class LogoutView(View):
     def get(self, request):
         # ลบ Access Token และข้อมูลการล็อกอินจาก session
         request.session.pop('access_token', None)
+        request.session.pop('song_data', None)
 
         messages.success(request, 'You have successfully logged out.')    
         return redirect('signin')
@@ -204,10 +239,16 @@ import json
 def set_song_session(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        request.session['song_title'] = data.get('title')
-        request.session['album_title'] = data.get('album')
-        request.session['album_cover'] = data.get('albumCover')
-        request.session['singer'] = data.get('singer')
-        
+        request.session['song_data'] = {
+            'title': data.get('title'),
+            'album': data.get('album'),
+            'albumCover': data.get('albumCover'),
+            'singer': data.get('singer'),
+            'songUrl': data.get('songUrl')
+        }
         return JsonResponse({'message': 'Song data set in session'})
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def get_song_session(request):
+    song_data = request.session.get('song_data', None)
+    return JsonResponse(song_data if song_data else {'error': 'No song data in session'}, status=200)

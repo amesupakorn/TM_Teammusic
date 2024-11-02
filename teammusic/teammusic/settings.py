@@ -15,7 +15,7 @@ SECRET_KEY = 'django-insecure-0frz@323m&l!v*ytn(gm-l&&$n)ne#mz7=ewx4^v37%jxs%pns
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['3.89.155.209', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -140,3 +140,6 @@ AWS_REGION_NAME = env('AWS_REGION_NAME')
 COGNITO_USER_POOL_ID = env('COGNITO_USER_POOL_ID')
 COGNITO_IDENTITY_POOL_ID = env('COGNITO_IDENTITY_POOL_ID')
 COGNITO_CLIENT_ID = env('COGNITO_CLIENT_ID')
+
+MEDIA_URL = '/img/'  # URL ที่จะใช้ในการเข้าถึงไฟล์ใน media
+MEDIA_ROOT = os.path.join(BASE_DIR, 'img')  # พาธของโฟลเดอร์ที่เก็บไฟล์จริงๆ

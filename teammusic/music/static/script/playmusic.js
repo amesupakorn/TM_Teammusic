@@ -1,19 +1,23 @@
-let audio = null; // ประกาศตัวแปร audio สำหรับควบคุมการเล่นเพลง
+let audio = null;
 let isPlaying = false;
+let currentSongIndex = 0;
+
+
 
 function playSong(title, album, albumCover, singer, songUrl) {
-    // ส่งข้อมูลเพลงไปยังเซสชันผ่าน AJAX
+    // ส่งข้อมูลเพลงไปเก็บใน session
     fetch("/teammusic/set_song_session/", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'  // ส่ง CSRF Token
+            'X-CSRFToken': '{{ csrf_token }}'
         },
         body: JSON.stringify({
             'title': title,
             'album': album,
             'albumCover': albumCover,
-            'singer': singer
+            'singer': singer,
+            'songUrl': songUrl
         })
     }).then(response => {
         if (response.ok) {
@@ -26,20 +30,17 @@ function playSong(title, album, albumCover, singer, songUrl) {
 }
 
 function openPlayer(title, album, albumCover, singer, songUrl) {
-    // อัพเดตข้อมูลใน player control
     document.getElementById("playerSongTitle").textContent = title;
     document.getElementById("playerAlbumInfo").textContent = `${singer} - ${album}`;
     document.getElementById("playerAlbumCover").src = albumCover;
 
-    // สร้าง audio object ใหม่สำหรับเล่นเพลง
     if (audio) {
-        audio.pause(); // หยุดเพลงเก่าหากกำลังเล่นอยู่
+        audio.pause();
     }
     audio = new Audio(songUrl);
     audio.play();
     isPlaying = true;
 
-    // แสดง player control
     document.getElementById("playerControl").classList.remove("hidden");
     updatePlayPauseIcon();
 }
@@ -73,11 +74,26 @@ function updatePlayPauseIcon() {
 }
 
 function previousSong() {
-    console.log("Previous song");
-    // ใส่ logic การเล่นเพลงก่อนหน้า
+    currentSongIndex = (currentSongIndex - 1 + songList.length) % songList.length;
+    const song = songList[currentSongIndex];
+    playSong(song.title, song.album, song.albumCover, song.singer, song.songUrl);
 }
 
 function nextSong() {
-    console.log("Next song");
-    // ใส่ logic การเล่นเพลงถัดไป
+    currentSongIndex = (currentSongIndex + 1) % songList.length;
+    const song = songList[currentSongIndex];
+    playSong(song.title, song.album, song.albumCover, song.singer, song.songUrl);
 }
+
+// เมื่อหน้าโหลด ให้ดึงข้อมูลเพลงจาก session เพื่อเริ่มต้น player
+window.onload = function() {
+    fetch("/teammusic/get_song_session/")
+        .then(response => response.json())
+        .then(data => {
+            if (data && !data.error) {
+                // หากมีข้อมูลเพลงใน session ให้นำมาเล่น
+                playSong(data.title, data.album, data.albumCover, data.singer, data.songUrl);
+            }
+        })
+        .catch(error => console.error("Error loading song from session:", error));
+};

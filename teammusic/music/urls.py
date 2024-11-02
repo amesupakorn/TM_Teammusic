@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
      path("", views.MainView.as_view(), name="home"),
@@ -12,5 +14,10 @@ urlpatterns = [
      path('logout/', views.LogoutView.as_view(), name='logout'),
      
      path('set_song_session/', views.set_song_session, name='set_song_session'),
+     path('get_song_session/', views.get_song_session, name='get_song_session'),
+
 
 ]
+
+if settings.DEBUG:  # ใช้เฉพาะในโหมด DEBUG
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
