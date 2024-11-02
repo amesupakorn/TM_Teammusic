@@ -164,10 +164,66 @@
         </div>
         {% endblock %}
 
+        <div class="flex items-center mt-4">
+          {% if messages %}
+            <div id="message-box" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 bg-white shadow-lg rounded-lg p-4 text-center transition-opacity duration-1000 inline-block max-w-full">
+              {% for message in messages %}
+                <div class="relative flex items-center justify-center space-x-2 {% if message.tags == 'error' %} text-red-500 {% elif message.tags == 'success' %} text-green-500 {% endif %}">
+                  <div class="text-sm font-medium">{{ message }}</div>
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    {% if message.tags == 'error' %}
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    {% elif message.tags == 'success' %}
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    {% endif %}
+                  </svg>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
         <!-- Main Content -->
+      <div class="flex-grow p-8 gradient-background max-h-full">
+
         {% block content %}
 
         {% endblock %}
+
+        {% block music %}
+        <div id="playerControl" class="fixed bottom-0 left-64  w-[calc(100%-16rem)] bg-zinc-900 text-white py-4 px-8 shadow-lg hidden">
+          <div class="flex items-center justify-between">
+              <!-- Album Cover and Song Information -->
+              <div class="flex items-center">
+                  <img id="playerAlbumCover" src="" alt="Album Cover" class="w-12 h-12 rounded mr-4">
+                  <div>
+                      <h3 id="playerSongTitle" class="text-md font-semibold"></h3>
+                      <p id="playerAlbumInfo" class="text-sm text-gray-400"></p>
+                  </div>
+              </div>
+      
+              <div class="flex space-x-4 px-8">
+                  <button onclick="previousSong()" class="text-white">
+                    <svg class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="11 5 2 12 11 19 11 5" /> 
+                      <polygon points="22 5 13 12 22 19 22 5" />
+                  </svg>
+                  </button>
+
+                  <button onclick="togglePlayPause()" id="playPauseButton" class="text-white">
+                    <svg class="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="6" y="4" width="4" height="16"></rect>
+                      <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                 </button>
+
+
+                  <button onclick="nextSong()" class="text-white">
+                    <svg class="h-6 w-6 text-white"  viewBox="0 0 24 24"  fill="currentColor"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round">  <polygon points="13 19 22 12 13 5 13 19" />  <polygon points="2 19 11 12 2 5 2 19" /></svg>              </div>
+            </div>
+      </div>
+        {% endblock %}
+
+    </div>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(function() {
@@ -179,5 +235,6 @@
                 }, 3000); // 5 วินาที
             });
         </script>
+        <script src="{% static "script/playmusic.js" %}"></script>
 </body>
 </html>

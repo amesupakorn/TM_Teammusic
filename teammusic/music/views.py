@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.conf import settings
 from django.http import JsonResponse
 import jwt
+from .models import *
 
 cognito_client = boto3.client('cognito-idp', region_name=settings.COGNITO_REGION)
 
@@ -23,6 +24,8 @@ def get_username_from_access_token(access_token):
     except jwt.DecodeError:
         return None
 
+
+
 class MainView(View):
     def get(self, request):
         if request.session.get('access_token'):
@@ -30,20 +33,50 @@ class MainView(View):
             username = get_username_from_access_token(access_token) if access_token else None
         else:
             username = ''
+        
+        singer = Singer.objects.all()
+        album = Album.objects.all()
         return render(request, "index.html",{
-            'username' : username
+            'username' : username,
+            'singer' : singer,
+            'album': album
         })
         
 class Artlist(View):
-    def get(self, request):
+    def get(self, request, id):
+        if request.session.get('access_token'):
+            access_token = request.session.get('access_token')
+            username = get_username_from_access_token(access_token) if access_token else None
+        else:
+            username = ''
+            
+        singer = Singer.objects.get(id=id)
+        album_ids = Album.objects.filter(singer_id=id).values_list('id', flat=True)  # ดึงรายการ id ของอัลบั้ม
+        print(album_ids)
+        songs = Song.objects.filter(album_id__in=album_ids)  # ใช้ __in เพื่อดึงเพลงทั้งหมดที่อยู่ในอัลบั้มเหล่านี้
+        countSong = songs.count()
         return render(request, "artlist.html",{
+            'username' : username,
+            'singer': singer,
+            'songs': songs,
+            'countSong': countSong
             
         })
         
 class Albums(View):
-     def get(self, request):
-        return render(request, "album.html",{
+    
+    def get(self, request, id):
+        if request.session.get('access_token'):
+            access_token = request.session.get('access_token')
+            username = get_username_from_access_token(access_token) if access_token else None
+        else:
+            username = ''
             
+        album = Album.objects.get(id=id)
+
+        return render(request, "album.html",{
+            'username' : username,
+            'album' : album
         })
 
 
@@ -68,20 +101,18 @@ class SignIn(View):
                 }
             )
 
+
              # รับโทเค็นจาก Cognito
             access_token = response['AuthenticationResult']['AccessToken']
-            
             # จัดเก็บ Access Token ใน session
             request.session['access_token'] = access_token
-            # คุณสามารถจัดเก็บโทเค็นเหล่านี้ใน session หรือ cookie ได้
-            # request.session['id_token'] = id_token
-            # request.session['access_token'] = access_token
-            # request.session['refresh_token'] = refresh_token
 
             messages.success(request, 'Login successful')
-            return redirect('home') 
+            return render(request, "index.html",{
+                })
+
         
-        except cognito_client.exceptions.NotAuthorizedException:
+        except cognito_client.exceptions.NotAuthorizedException: 
             messages.error(request, 'Invalid username or password')
         except Exception as e:
             messages.error(request, f'Error: {str(e)}')
@@ -140,8 +171,10 @@ class ConfirmEmail(View):
                 Username=username,
                 ConfirmationCode=confirmation_code,
             )
+            
             messages.success(request, 'Email confirmed successfully! You can now log in.')
-            return redirect('signin')  # เปลี่ยนไปยังหน้า login หลังยืนยันอีเมลเสร็จสิ้น
+            return render(request, "account/signin.html",{
+                })
         
         except cognito_client.exceptions.CodeMismatchException:
             messages.error(request, 'Invalid confirmation code. Please try again.')
@@ -161,3 +194,20 @@ class LogoutView(View):
         return redirect('signin')
 
 
+
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@csrf_exempt
+def set_song_session(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        request.session['song_title'] = data.get('title')
+        request.session['album_title'] = data.get('album')
+        request.session['album_cover'] = data.get('albumCover')
+        request.session['singer'] = data.get('singer')
+        
+        return JsonResponse({'message': 'Song data set in session'})
+    return JsonResponse({'error': 'Invalid request'}, status=400)

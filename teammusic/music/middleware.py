@@ -8,7 +8,7 @@ class CognitoLoginRequiredMiddleware:
     def __call__(self, request):
         # ตรวจสอบว่าโทเค็นล็อกอินอยู่ใน session หรือไม่
         if not request.session.get('access_token'):
-            if request.path not in [settings.LOGIN_URL, '/signup/', '/confirmemail/', '/teammusic/']:
+            if request.path not in [settings.LOGIN_URL, '/teammusic/signup/', '/teammusic/confirm/', '/teammusic/']:
                 return redirect(settings.LOGIN_URL)
         response = self.get_response(request)
         return response

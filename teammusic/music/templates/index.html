@@ -1,40 +1,21 @@
 {% extends "layout.html" %}
 {% load static %}
 {% block content %}
-		<div class="flex items-center mt-4">
-			{% if messages %}
-				<div id="message-box" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 bg-white shadow-lg rounded-lg p-4 text-center transition-opacity duration-1000 inline-block max-w-full">
-					{% for message in messages %}
-						<div class="relative flex items-center justify-center space-x-2 {% if message.tags == 'error' %} text-red-500 {% elif message.tags == 'success' %} text-green-500 {% endif %}">
-							<div class="text-sm font-medium">{{ message }}</div>
-							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-								{% if message.tags == 'error' %}
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-								{% elif message.tags == 'success' %}
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-								{% endif %}
-							</svg>
-						</div>
-					{% endfor %}
-				</div>
-			{% endif %}
-		</div>
-
         <!-- Main Content -->
-        <div class="flex-grow p-8 gradient-background">
 			<div>
 				<h2 class="text-2xl font-bold mb-2">Popular Artists</h2>
 				<div class="flex space-x-2 overflow-x-auto">
 					<!-- Artist Card -->
-					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl" onclick="window.location.href='{% url 'artist' %}'">
-						<img src="{% static 'img/Taylor.png' %}" alt="Taylor Swift" class="w-42
+					{% for singer in singer %}
+					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl" onclick="window.location.href='{% url 'artist' singer.id %}'">
+						<img src="{% static singer.s3_photourl %}" alt="{{ singer.name }}" class="w-42
 						h-42
 						object-cover rounded-full mx-auto">
 						
 						<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
 
 						<div class="mt-4 text-left">
-							<span class="font-bold text-white block text-sm">Taylor Swift</span>
+							<span class="font-bold text-white block text-sm">{{ singer.name }}</span>
 							<p class="text-gray-400 text-xs">Artist</p>
 						</div>
 						
@@ -43,9 +24,10 @@
 							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
 						</div>
 					</div>
+					{% endfor %}
 					
 			
-					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl">
+					{% comment %} <div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl">
 						<img src="{% static 'img/Beyonce.png' %}" alt="Beyoncé" class="w-42
 						 h-42
 						 object-cover rounded-full mx-auto">
@@ -114,7 +96,7 @@
 						<div class="absolute bottom-16 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
 							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
 						</div>
-					</div>
+					</div> {% endcomment %}
 				</div>
 			</div>
 
@@ -124,15 +106,17 @@
                 <h2 class="text-2xl font-bold mb-4">Popular Albums</h2>
 				<div class="flex space-x-2 overflow-x-auto">
                     <!-- Album Card -->
-					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl">
-						<img src="{% static "img/Lalisa.jpg" %}" class="rounded-2xl w-full h-40 object-cover mb-2">
+					{% for album in album  %}
+
+					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl" onclick="window.location.href='{% url 'albums' album.id %}'" >
+						<img src="{% static album.s3_alblumurl %}" class="rounded-2xl w-full h-40 object-cover mb-2">
 
 					
 						<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
 
 						<div class="mt-4 text-left">
-							<span class="font-bold text-white block text-sm">Rockstart</span>
-							<p class="text-gray-400 text-xs">LISA</p>
+							<span class="font-bold text-white block text-sm">{{ album.title }}</span>
+							<p class="text-gray-400 text-xs">{{ album.singer }}</p>
 						</div>
 						
 						<!-- ปุ่ม Play ที่มุมขวาล่าง -->
@@ -140,7 +124,9 @@
 							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
 						</div>
 					</div>
+					{% endfor %}
 
+				{% comment %} 
 					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl">
 						<img src="{% static "img/TTPD.jpg"%}" class="rounded-2xl w-full h-40 object-cover mb-2">
 					
@@ -219,11 +205,10 @@
 						<div class="absolute bottom-28 right-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
 							<button class="bg-white text-gray-700 text-lg rounded-full w-10 h-10 flex items-center justify-center">▶️</button>
 						</div>
-					</div>
+					</div> {% endcomment %}
     
                 </div>
                 
             </div>
         </div>
-    </div>
 {% endblock %}
