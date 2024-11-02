@@ -7,6 +7,8 @@ urlpatterns = [
      path("album", views.Albums.as_view(), name="albums"),
      
      path("signin", views.SignIn.as_view(), name="signin"),
-     path("signup", views.SignUp.as_view(), name="signup")
-     
+     path("signup", views.SignUp.as_view(), name="signup"),
+     path("confirm", views.ConfirmEmail.as_view(), name="confirmemail"),
+     path('logout/', views.LogoutView.as_view(), name='logout'),
+
 ]

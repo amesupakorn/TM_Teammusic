@@ -42,12 +42,11 @@
     <!-- Right Section -->
     
     <div class="flex items-center justify-center w-full md:w-1/2 p-8 bg-white">
-
       <div class="w-full max-w-md">
       
         <h2 class="text-3xl font-bold text-gray-900 text-center mb-6">Create your account</h2>
         
-        <form action="#" class="space-y-4">
+        <form method="POST" class="space-y-4">
           {% csrf_token %}
           <div class="relative">
             <label class="absolute left-3 top-3 text-gray-400">

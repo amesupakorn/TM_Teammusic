@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django_browser_reload',
     
     'music',
+
     
 ]
 
@@ -57,6 +58,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "django_browser_reload.middleware.BrowserReloadMiddleware",
+    'music.middleware.CognitoLoginRequiredMiddleware',
+
 ]
 
 ROOT_URLCONF = 'teammusic.urls'
@@ -137,3 +140,4 @@ COGNITO_USER_POOL_ID = 'us-east-1_iSgM4iZSt'
 COGNITO_CLIENT_ID = '61m4jo670rg1lt1r7f6cjp1nr0' 
 COGNITO_REGION = 'us-east-1'
 
+LOGIN_URL = '/teammusic/signin'

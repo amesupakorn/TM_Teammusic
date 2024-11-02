@@ -26,10 +26,17 @@
         </div>
 
         <!-- Right Buttons -->
-        <div class="flex space-x-4">
-            <a href="{% url "signup" %}" class="bg-gray-100 text-black px-4 py-2 rounded-full hover:cursor-pointer">Sign Up</a>
-            <a href="{% url "signin"%}" class="bg-black text-white px-6 py-2 rounded-full hover:cursor-pointer">Login</a>
-        </div>
+        {% if request.session.access_token %}
+            <div class="flex space-x-4">
+                <a href="{% url "logout" %}" class="bg-gray-100 text-black px-4 py-2 rounded-full hover:cursor-pointer">logout</a>
+                <a href="" class="bg-black text-white px-6 py-2 rounded-full hover:cursor-pointer">{{ username }}</a>
+            </div>
+        {% else %}
+            <div class="flex space-x-4">
+                <a href="{% url "signup" %}" class="bg-gray-100 text-black px-4 py-2 rounded-full hover:cursor-pointer">Sign Up</a>
+                <a href="{% url "signin"%}" class="bg-black text-white px-6 py-2 rounded-full hover:cursor-pointer">Login</a>
+            </div>
+        {% endif %}
     </div>
     {% endblock %}
 
@@ -161,5 +168,16 @@
         {% block content %}
 
         {% endblock %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(function() {
+                    const messageBox = document.getElementById('message-box');
+                    if (messageBox) {
+                        messageBox.style.opacity = '0';
+                        setTimeout(() => { messageBox.style.display = 'none'; }, 1000); // Hide after fade out
+                    }
+                }, 3000); // 5 วินาที
+            });
+        </script>
 </body>
 </html>
