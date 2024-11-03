@@ -7,16 +7,16 @@ from django.conf import settings
 from django.http import JsonResponse
 import jwt
 from .models import *
+from django.db import transaction
+
 
 cognito_client = boto3.client('cognito-idp', region_name=settings.COGNITO_REGION)
 
 
 def get_username_from_access_token(access_token):
     try:
-        # ถอดรหัส JWT โดยไม่ตรวจสอบ signature (เพราะ Cognito Access Token เป็น JWT signed)
+        # ถอดรหัส JWT โดยไม่ตรวจสอบ signature
         decoded_token = jwt.decode(access_token, options={"verify_signature": False})
-        
-        # ดึงข้อมูล username (sub หรือ preferred_username)
         username = decoded_token.get("username") or decoded_token.get("cognito:username")
         return username
     except jwt.ExpiredSignatureError:
@@ -24,32 +24,85 @@ def get_username_from_access_token(access_token):
     except jwt.DecodeError:
         return None
 
+def refresh_access_token(refresh_token):
+    try:
+        response = cognito_client.initiate_auth(
+            ClientId=settings.COGNITO_APP_CLIENT_ID,
+            AuthFlow='REFRESH_TOKEN_AUTH',
+            AuthParameters={'REFRESH_TOKEN': refresh_token}
+        )
+        return response['AuthenticationResult']['AccessToken']
+    except cognito_client.exceptions.NotAuthorizedException:
+        return None
 
+def get_cognito_user_id(access_token, refresh_token=None):
+    try:
+        response = cognito_client.get_user(AccessToken=access_token)
+        for attr in response['UserAttributes']:
+            if attr['Name'] == 'sub':
+                return attr['Value']
+    except cognito_client.exceptions.NotAuthorizedException:
+        if refresh_token:
+            # ขอ Access Token ใหม่ด้วย Refresh Token
+            new_access_token = refresh_access_token(refresh_token)
+            if new_access_token:
+                # อัปเดต Access Token ใน session
+                return get_cognito_user_id(new_access_token)
+    return None
 
 class MainView(View):
     def get(self, request):
-        if request.session.get('access_token'):
-            access_token = request.session.get('access_token')
-            username = get_username_from_access_token(access_token) if access_token else None
+        access_token = request.session.get('access_token')
+        refresh_token = request.session.get('refresh_token')
+        
+        # ตรวจสอบ Access Token
+        if access_token:
+            username = get_username_from_access_token(access_token)
+            cognito_user_id = get_cognito_user_id(access_token, refresh_token)
+            if cognito_user_id:
+                user_playlists = Playlist.objects.filter(cognito_user_id=cognito_user_id)
+                has_playlists = user_playlists.exists()
+            else:
+                # กรณีที่ไม่สามารถดึง cognito_user_id ได้หลังจาก refresh token
+                messages.error(request, 'Please Login again')
+                return redirect('signin')
         else:
             username = ''
+            user_playlists = []
+            has_playlists = False
+
+        # ดึงข้อมูลนักร้องและอัลบั้มทั้งหมด
+        singers = Singer.objects.all()
+        albums = Album.objects.all()
         
-        singer = Singer.objects.all()
-        album = Album.objects.all()
-        return render(request, "index.html",{
-            'username' : username,
-            'singer' : singer,
-            'album': album
+        return render(request, "index.html", {
+            'username': username,
+            'singer': singers,
+            'album': albums,
+            'user_playlists': user_playlists,
+            'has_playlists': has_playlists
         })
         
 class Artlist(View):
     def get(self, request, id):
-        # ตรวจสอบว่า session มี access_token หรือไม่
-        if request.session.get('access_token'):
-            access_token = request.session.get('access_token')
-            username = get_username_from_access_token(access_token) if access_token else None
+        access_token = request.session.get('access_token')
+        refresh_token = request.session.get('refresh_token')
+        
+        # ตรวจสอบ Access Token
+        if access_token:
+            username = get_username_from_access_token(access_token)
+            cognito_user_id = get_cognito_user_id(access_token, refresh_token)
+            if cognito_user_id:
+                user_playlists = Playlist.objects.filter(cognito_user_id=cognito_user_id)
+                has_playlists = user_playlists.exists()
+            else:
+                # กรณีที่ไม่สามารถดึง cognito_user_id ได้หลังจาก refresh token
+                messages.error(request, 'Please Login again')
+                return redirect('signin')
         else:
             username = ''
+            user_playlists = []
+            has_playlists = False
         
         # ดึงข้อมูลนักร้อง อัลบั้ม และเพลงทั้งหมดของนักร้องนี้
         singer = Singer.objects.get(id=id)
@@ -81,7 +134,9 @@ class Artlist(View):
             'countSong': countSong,
             'firstsongs': firstsongs,
             'songrandom': songrandom,
-            'song_list': song_list  # ส่งรายการเพลงไปยัง template
+            'song_list': song_list,  # ส่งรายการเพลงไปยัง template
+            'user_playlists': user_playlists,
+            'has_playlists': has_playlists
         }
 
         return render(request, "artlist.html", context)
@@ -89,11 +144,25 @@ class Artlist(View):
 class Albums(View):
     
     def get(self, request, id):
-        if request.session.get('access_token'):
-            access_token = request.session.get('access_token')
-            username = get_username_from_access_token(access_token) if access_token else None
+        access_token = request.session.get('access_token')
+        refresh_token = request.session.get('refresh_token')
+        
+        # ตรวจสอบ Access Token
+        if access_token:
+            username = get_username_from_access_token(access_token)
+            cognito_user_id = get_cognito_user_id(access_token, refresh_token)
+            if cognito_user_id:
+                user_playlists = Playlist.objects.filter(cognito_user_id=cognito_user_id)
+                has_playlists = user_playlists.exists()
+            else:
+                # กรณีที่ไม่สามารถดึง cognito_user_id ได้หลังจาก refresh token
+                messages.error(request, 'Please Login again')
+                return redirect('signin')
         else:
             username = ''
+            user_playlists = []
+            has_playlists = False
+        
             
         album = Album.objects.get(id=id)
         songs = Song.objects.filter(album_id=id)  
@@ -111,7 +180,9 @@ class Albums(View):
             'countSong': countSong,
             'singer' : singer,
             'firstsongs' : firstsongs,
-            'songrandom': songrandom
+            'songrandom': songrandom,
+            'user_playlists': user_playlists,
+            'has_playlists': has_playlists
         })
 
 
@@ -252,3 +323,111 @@ def set_song_session(request):
 def get_song_session(request):
     song_data = request.session.get('song_data', None)
     return JsonResponse(song_data if song_data else {'error': 'No song data in session'}, status=200)
+
+
+
+class PlayList(View):
+    def get(self, request):
+        access_token = request.session.get('access_token')
+        refresh_token = request.session.get('refresh_token')
+        
+        # ตรวจสอบ Access Token
+        if access_token:
+            username = get_username_from_access_token(access_token)
+            cognito_user_id = get_cognito_user_id(access_token, refresh_token)
+            if cognito_user_id:
+                user_playlists = Playlist.objects.filter(cognito_user_id=cognito_user_id)
+                has_playlists = user_playlists.exists()
+            else:
+                # กรณีที่ไม่สามารถดึง cognito_user_id ได้หลังจาก refresh token
+                messages.error(request, 'Please Login again')
+                return redirect('signin')
+        else:
+            username = ''
+            user_playlists = []
+            has_playlists = False
+      
+      
+        return render(request, "createPlaylist.html",{
+            'username': username,
+            'user_playlists': user_playlists,
+            'has_playlists': has_playlists
+        })
+
+
+class PlayListView(View):
+     def get(self, request, id):
+        access_token = request.session.get('access_token')
+        refresh_token = request.session.get('refresh_token')
+        
+        # ตรวจสอบ Access Token
+        if access_token:
+            username = get_username_from_access_token(access_token)
+            cognito_user_id = get_cognito_user_id(access_token, refresh_token)
+            if cognito_user_id:
+                user_playlists = Playlist.objects.filter(cognito_user_id=cognito_user_id)
+                has_playlists = user_playlists.exists()
+            else:
+                # กรณีที่ไม่สามารถดึง cognito_user_id ได้หลังจาก refresh token
+                messages.error(request, 'Please Login again')
+                return redirect('signin')
+        else:
+            username = ''
+            user_playlists = []
+            has_playlists = False
+            
+        playlist = Playlist.objects.get(id=id)
+        song_count = playlist.songs.count()
+        song = playlist.songs
+        return render(request, "playlistt.html",{
+            'username': username,
+            'playlist' : playlist,
+            'countSong': song_count,
+            'songs' : song,
+            'user_playlists': user_playlists,
+            'has_playlists': has_playlists
+        })
+        
+        
+        
+
+class CreatePlayList(View):    
+    def post(self, request):
+        
+        try:
+            # ดึง access token จาก session
+            access_token = request.session.get('access_token')
+            if not access_token:
+                return JsonResponse({'success': False, 'error': 'Access token not found'}, status=400)
+
+            # ดึง Cognito User ID จาก access token
+            cognito_user_id = get_cognito_user_id(access_token)
+            if not cognito_user_id:
+                return JsonResponse({'success': False, 'error': 'Cognito user ID not found'}, status=400)
+
+            # ดึงข้อมูลจาก request
+            name = request.POST.get('name')
+            description = request.POST.get('description')
+            image = request.FILES.get('image')
+
+            # ตรวจสอบว่ามีการใส่ชื่อ Playlist หรือไม่
+            if not name:
+                return JsonResponse({'success': False, 'error': 'Playlist name is required'}, status=400)
+
+            # สร้าง Playlist
+            with transaction.atomic():
+                # สร้าง Playlist
+                playlist = Playlist.objects.create(
+                    name=name,
+                    description=description,
+                    playlist_image=image,
+                    cognito_user_id=cognito_user_id
+                )
+
+            
+            return redirect('viewPlaylist', id=playlist.id)
+
+
+        except Exception as e:
+            # ดักจับข้อผิดพลาดทั้งหมดและส่งข้อความแจ้งกลับ
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)

@@ -84,6 +84,7 @@
                       </a>
                     </li>
                   </ul>
+                  {% if request.session.access_token %}
                   <ul>
                     <li class="relative px-6 py-3" x-data="{ isPagesMenuOpen: false }">
                       <button
@@ -132,24 +133,18 @@
                           class="p-2 mt-2 space-y-2 overflow-hidden text-sm font-medium text-gray-500 rounded-md shadow-inner bg-gray-50"
                           aria-label="submenu"
                         >
-                          <li
-                            class="px-2 py-1 transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200"
-                          >
-                            <a class="w-full" href="">TS👊🏻💖</a>
-                          </li>
-                          <li
-                            class="px-2 py-1 transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200"
-                          >
-                            <a class="w-full" href="">sport🦾</a>
-                          </li>
-                          <li
-                            class="px-2 py-1 transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200"
-                          >
-                            <a class="w-full" href="pages/forgot-password.html">Chill🍀</a>
-                          </li>
+                        {% if has_playlists %}
+                          {% for playlist in user_playlists %}
 
+                            <li
+                                class="px-2 py-1 transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200"
+                              >
+                                <a class="w-full" href="{% url 'viewPlaylist' playlist.id %}">{{ playlist.name }}</a>
+                            </li>
+                          {% endfor %}
+                        {% endif %}
                           <li>
-                            <button
+                            <button onclick="window.location.href='{% url 'createPlaylist' %}'"
                               class="flex items-center justify-between w-full px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-black border border-transparent rounded-lg"
                             >
                               Create Playlist
@@ -160,6 +155,7 @@
                       </template>
                     </li>
                   </ul>
+                {% endif %}
             </div>
         </div>
         {% endblock %}
@@ -183,7 +179,7 @@
           {% endif %}
         </div>
         <!-- Main Content -->
-        <div class="flex-grow p-8 gradient-background h-auto">
+        <div class="flex-grow p-8 gradient-background max-h-auto">
 
         {% block content %}
 
