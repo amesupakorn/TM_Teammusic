@@ -2,6 +2,9 @@ from django.db import models
 
 # Create your models here.
 from django.db import models
+import uuid
+from django.urls import reverse
+
 
 # โมเดล Singer
 class Singer(models.Model):
@@ -45,7 +48,11 @@ class Playlist(models.Model):
     cognito_user_id = models.CharField(max_length=100, blank=True, null=True)  # เจ้าของ Playlist (Cognito User ID)
     songs = models.ManyToManyField('Song', related_name="playlists", blank=True)     # เพลงที่อยู่ใน Playlist (Many-to-Many Relationship)
     playlist_image = models.ImageField(upload_to='playlist/', blank=True, null=True)
-    
+    share_token = models.UUIDField(default=uuid.uuid4, unique=True)
+
     def __str__(self):
         return self.name
 
+    def get_share_url(self):
+        # สร้าง URL สำหรับแชร์โดยใช้ share_token
+        return reverse("share_playlist", args=[str(self.share_token)])

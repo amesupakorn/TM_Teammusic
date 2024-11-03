@@ -401,7 +401,80 @@ class CreatePlayList(View):
             messages.error(request, f'An error occurred: {str(e)}')
             return redirect('create_playlist')  # เปลี่ยนเส้นทางกลับไปยังฟอร์มการสร้าง Playlist
 
+from .forms import PlaylistForm  
 
+class EditPlayList(View):
+    def get(self, request, id):
+        access_token = request.session.get('access_token')
+        refresh_token = request.session.get('refresh_token')
+        
+        # ตรวจสอบ Access Token
+        if access_token:
+            username = get_username_from_access_token(access_token)
+            cognito_user_id = get_cognito_user_id(access_token, refresh_token)
+            if cognito_user_id:
+                user_playlists = Playlist.objects.filter(cognito_user_id=cognito_user_id)
+                has_playlists = user_playlists.exists()
+            else:
+                # กรณีที่ไม่สามารถดึง cognito_user_id ได้หลังจาก refresh token
+                messages.error(request, 'Please Login again')
+                return redirect('signin')
+        else:
+            username = ''
+            user_playlists = []
+            has_playlists = False
+      
+        playlist = Playlist.objects.get(id=id)
+        song_count = playlist.songs.count()
+        songs = playlist.songs.all()
+
+        return render(request, "editPlaylist.html",{
+            'username': username,
+            'playlist' : playlist,
+            'countSong': song_count,
+            'songs': songs,
+            'user_playlists': user_playlists,
+            'has_playlists': has_playlists,
+            'form': PlaylistForm(instance=playlist)
+        })
+        
+    def post(self, request, id):
+        playlist = get_object_or_404(Playlist, id=id)  # ดึงข้อมูล Playlist ที่ต้องการแก้ไข
+        form = PlaylistForm(request.POST, request.FILES, instance=playlist)  # ใช้ instance เพื่ออัปเดตข้อมูล
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Playlist edited successfully.")
+
+            return redirect('viewPlaylist', id=playlist.id)  # เปลี่ยนเส้นทางไปยังหน้าแสดง Playlist
+        else:
+            messages.error(request, "Playlist edited error.")
+            return render(request, "editPlaylist.html", {
+                'form': form,
+                'playlist': playlist,
+                'countSong': playlist.songs.count(),
+                'songs': playlist.songs.all(),
+                'user_playlists': Playlist.objects.filter(cognito_user_id=request.session.get('cognito_user_id')),
+                'has_playlists': True
+            })
+        
+def delete_playlist(request, playlist_id):
+    playlist = Playlist.objects.get(id=playlist_id)
+    playlist.delete()
+    
+    messages.success(request, "Playlist deleted successfully.")
+    return redirect('home')
+
+
+def remove_song_from_playlist(request, playlist_id, song_id):
+    if request.method == 'POST':
+        try:
+            playlist = get_object_or_404(Playlist, id=playlist_id)
+            song = get_object_or_404(Song, id=song_id)
+            playlist.songs.remove(song)
+            return JsonResponse({'success': True, 'message': 'Song removed from playlist.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
 
 class PlayListView(View):
      def get(self, request, id):
@@ -428,8 +501,9 @@ class PlayListView(View):
         song_count = playlist.songs.count()
         songs = playlist.songs.all()
         firstsongs = songs.first()
-        countSong = songs.count()
         songrandom = songs.order_by('?').first()
+        
+        share_url = request.build_absolute_uri(playlist.get_share_url())
         
         songall = Song.objects.all()
         return render(request, "playlist.html",{
@@ -442,6 +516,7 @@ class PlayListView(View):
             'songAll': songall,
             'firstsongs' : firstsongs,
             'songrandom': songrandom,
+            "share_url": share_url,
         })
         
 
@@ -461,3 +536,12 @@ def add_song_to_playlist(request, playlist_id, song_id):
     playlist.songs.add(song)
     messages.success(request, 'Add song completes.')
     return redirect('viewPlaylist', id=playlist_id)
+
+
+
+
+
+def share_playlist(request, share_token):
+    playlist = get_object_or_404(Playlist, share_token=share_token)
+    return render(request, "playlist_detail.html", {"playlist": playlist})
+

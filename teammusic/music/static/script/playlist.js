@@ -79,3 +79,12 @@ function filterSongsMain() {
         }
     });
 }
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        alert("Link copied to clipboard!");
+    }, function(err) {
+        console.error("Could not copy text: ", err);
+    });
+}
+

@@ -17,10 +17,15 @@ urlpatterns = [
      path('get_song_session/', views.get_song_session, name='get_song_session'),
 
      path('viewlist/<int:id>/', views.PlayListView.as_view(), name="viewPlaylist"),
+     path('editlist/<int:id>/', views.EditPlayList.as_view(), name="editPlaylist"),
+     path('delete/<int:id>/', views.delete_playlist, name="deletePlaylist"),
+
      path('create_playlist/', views.CreatePlayList.as_view(), name='create_playlist'),
 
-    path('playlist/<int:playlist_id>/add_song/<int:song_id>/', views.add_song_to_playlist, name='add_song_to_playlist'),
-
+     path("playlist/share/<uuid:share_token>/", views.share_playlist, name="share_playlist"),
+     
+     path("add_song_to_playlist/<int:playlist_id>/song/<int:song_id>/", views.add_song_to_playlist, name="add_song_to_playlist"),
+     path('playlist/<int:playlist_id>/remove_song/<int:song_id>/', views.remove_song_from_playlist, name='remove_song_from_playlist'),
 
 ]
 
