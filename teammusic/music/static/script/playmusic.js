@@ -97,3 +97,18 @@ window.onload = function() {
         })
         .catch(error => console.error("Error loading song from session:", error));
 };
+
+function filterSongsMain() {
+    const searchTerm = document.getElementById('searchInputMain').value.toLowerCase();
+    const songs = document.querySelectorAll('.song-item');
+
+    songs.forEach(song => {
+        const titleElement = song.querySelector('.song');
+        
+        // ตรวจสอบว่า titleElement ไม่ใช่ null
+        if (titleElement) {
+            const title = titleElement.textContent.toLowerCase();
+            song.style.display = title.includes(searchTerm) ? 'flex' : 'none';
+        }
+    });
+}

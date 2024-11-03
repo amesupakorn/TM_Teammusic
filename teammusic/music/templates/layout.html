@@ -137,14 +137,14 @@
                           {% for playlist in user_playlists %}
 
                             <li
-                                class="px-2 py-1 transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200"
+                                class="px-2 py-1 transition-colors duration-150 hover:text-black"
                               >
                                 <a class="w-full" href="{% url 'viewPlaylist' playlist.id %}">{{ playlist.name }}</a>
                             </li>
                           {% endfor %}
                         {% endif %}
                           <li>
-                            <button onclick="window.location.href='{% url 'createPlaylist' %}'"
+                            <button onclick="window.location.href='{% url 'create_playlist' %}'"
                               class="flex items-center justify-between w-full px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-black border border-transparent rounded-lg"
                             >
                               Create Playlist

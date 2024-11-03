@@ -6,3 +6,4 @@ jwt
 gunicorn
 boto3
 Pillow
+django-redis

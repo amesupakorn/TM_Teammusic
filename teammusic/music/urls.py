@@ -16,10 +16,11 @@ urlpatterns = [
      path('set_song_session/', views.set_song_session, name='set_song_session'),
      path('get_song_session/', views.get_song_session, name='get_song_session'),
 
-     path('createlist/', views.PlayList.as_view(), name="createPlaylist"),
      path('viewlist/<int:id>/', views.PlayListView.as_view(), name="viewPlaylist"),
      path('create_playlist/', views.CreatePlayList.as_view(), name='create_playlist'),
-     
+
+    path('playlist/<int:playlist_id>/add_song/<int:song_id>/', views.add_song_to_playlist, name='add_song_to_playlist'),
+
 
 ]
 

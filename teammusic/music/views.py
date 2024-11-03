@@ -247,6 +247,7 @@ class SignUp(View):
                         {'Name': 'email', 'Value': email},
                     ]
                 )
+                
                 messages.success(request, 'Please check your email for a confirmation code.')
                 return render(request, "account/confirmemail.html",{
                     'username' : username
@@ -271,6 +272,7 @@ class ConfirmEmail(View):
         confirmation_code = request.POST.get('confirmation_code')
 
         try:
+            
             response = cognito_client.confirm_sign_up(
                 ClientId=settings.COGNITO_CLIENT_ID,
                 Username=username,
@@ -326,7 +328,7 @@ def get_song_session(request):
 
 
 
-class PlayList(View):
+class CreatePlayList(View):
     def get(self, request):
         access_token = request.session.get('access_token')
         refresh_token = request.session.get('refresh_token')
@@ -348,11 +350,57 @@ class PlayList(View):
             has_playlists = False
       
       
+      
         return render(request, "createPlaylist.html",{
             'username': username,
             'user_playlists': user_playlists,
             'has_playlists': has_playlists
         })
+        
+    def post(self, request):
+        try:
+            # ดึง access token จาก session
+            access_token = request.session.get('access_token')
+            if not access_token:
+                messages.error(request, 'Access token not found. Please log in again.')
+                return redirect('home')  # เปลี่ยนเส้นทางไปที่หน้าแรกหรือหน้าที่ต้องการ
+
+            # ดึง Cognito User ID จาก access token
+            cognito_user_id = get_cognito_user_id(access_token)
+            if not cognito_user_id:
+                messages.error(request, 'Cognito user ID not found. Please log in again.')
+                return redirect('home')
+
+            # ดึงข้อมูลจาก request
+            name = request.POST.get('name')
+            description = request.POST.get('description')
+            image = request.FILES.get('image')
+
+            # ตรวจสอบว่ามีการใส่ชื่อ Playlist หรือไม่
+            if not name:
+                messages.error(request, 'Playlist name is required.')
+                return redirect('create_playlist')  # เปลี่ยนเส้นทางไปยังฟอร์มการสร้าง Playlist
+
+            # สร้าง Playlist
+            with transaction.atomic():
+                playlist = Playlist.objects.create(
+                    name=name,
+                    description=description,
+                    playlist_image=image,
+                    cognito_user_id=cognito_user_id
+                )
+
+            # เพิ่มข้อความสำเร็จ
+            messages.success(request, 'Your playlist was created successfully!')
+
+            # เปลี่ยนเส้นทางไปยังหน้าแสดง Playlist ใหม่ที่สร้าง
+            return redirect('viewPlaylist', id=playlist.id)
+
+        except Exception as e:
+            # ดักจับข้อผิดพลาดทั้งหมดและแสดงข้อความข้อผิดพลาด
+            messages.error(request, f'An error occurred: {str(e)}')
+            return redirect('create_playlist')  # เปลี่ยนเส้นทางกลับไปยังฟอร์มการสร้าง Playlist
+
 
 
 class PlayListView(View):
@@ -378,56 +426,38 @@ class PlayListView(View):
             
         playlist = Playlist.objects.get(id=id)
         song_count = playlist.songs.count()
-        song = playlist.songs
-        return render(request, "playlistt.html",{
+        songs = playlist.songs.all()
+        firstsongs = songs.first()
+        countSong = songs.count()
+        songrandom = songs.order_by('?').first()
+        
+        songall = Song.objects.all()
+        return render(request, "playlist.html",{
             'username': username,
             'playlist' : playlist,
             'countSong': song_count,
-            'songs' : song,
+            'songs' : songs,
             'user_playlists': user_playlists,
-            'has_playlists': has_playlists
+            'has_playlists': has_playlists,
+            'songAll': songall,
+            'firstsongs' : firstsongs,
+            'songrandom': songrandom,
         })
         
-        
-        
 
-class CreatePlayList(View):    
-    def post(self, request):
-        
-        try:
-            # ดึง access token จาก session
-            access_token = request.session.get('access_token')
-            if not access_token:
-                return JsonResponse({'success': False, 'error': 'Access token not found'}, status=400)
+from django.shortcuts import get_object_or_404, redirect
 
-            # ดึง Cognito User ID จาก access token
-            cognito_user_id = get_cognito_user_id(access_token)
-            if not cognito_user_id:
-                return JsonResponse({'success': False, 'error': 'Cognito user ID not found'}, status=400)
+def add_song_to_playlist(request, playlist_id, song_id):
+    # ดึง playlist และ song โดยใช้ id ที่ให้มา
+    playlist = get_object_or_404(Playlist, id=playlist_id)
+    song = get_object_or_404(Song, id=song_id)
 
-            # ดึงข้อมูลจาก request
-            name = request.POST.get('name')
-            description = request.POST.get('description')
-            image = request.FILES.get('image')
+    # ตรวจสอบว่าเพลงนั้นมีอยู่ในเพลย์ลิสต์แล้วหรือไม่
+    if playlist.songs.filter(id=song.id).exists():
+        messages.error(request, 'Song already exists in the playlist.')
+        return redirect('viewPlaylist')
 
-            # ตรวจสอบว่ามีการใส่ชื่อ Playlist หรือไม่
-            if not name:
-                return JsonResponse({'success': False, 'error': 'Playlist name is required'}, status=400)
-
-            # สร้าง Playlist
-            with transaction.atomic():
-                # สร้าง Playlist
-                playlist = Playlist.objects.create(
-                    name=name,
-                    description=description,
-                    playlist_image=image,
-                    cognito_user_id=cognito_user_id
-                )
-
-            
-            return redirect('viewPlaylist', id=playlist.id)
-
-
-        except Exception as e:
-            # ดักจับข้อผิดพลาดทั้งหมดและส่งข้อความแจ้งกลับ
-            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+    # ถ้าเพลงยังไม่อยู่ในเพลย์ลิสต์ ให้เพิ่มเพลงนั้นลงในเพลย์ลิสต์
+    playlist.songs.add(song)
+    messages.success(request, 'Add song completes.')
+    return redirect('viewPlaylist', id=playlist_id)

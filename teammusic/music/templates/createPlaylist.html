@@ -2,33 +2,35 @@
 {% load static %}
 {% block content %}
 <div class="mx-auto p-6">
-
-    <!-- Header Section -->
+  
+  <form id="playlistForm" method="post" enctype="multipart/form-data" action="{% url 'create_playlist' %}">
+    {% csrf_token %}
     <div class="flex items-start space-x-6">
         <!-- Image Upload Placeholder -->
         <label class="w-36 h-36 bg-gray-300 rounded-md flex items-center justify-center cursor-pointer relative">
-            <input type="file" id="playlistImage" class="hidden" accept="image/*" onchange="previewImage(event)">
+            <input type="file" name="image" id="playlistImage" class="hidden" accept="image/*" onchange="previewImage(event)">
             <img id="imagePreview" class="absolute w-full h-full object-cover rounded-md hidden" alt="Image Preview">
             <svg id="uploadIcon" xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-700" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm-1-8V7h2v5h3l-4 4-4-4h3z" />
+                <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm-1-8V7h2v5h3l-4 4-4-4h3z" />
             </svg>
-          </label>
-      
+        </label>
+        
         <!-- Playlist Details with Editable Inputs -->
         <div class="flex flex-col space-y-6">
-          <!-- Playlist Name Input -->
-          <input type="text" id="playlistName" placeholder="New Playlist" class="text-3xl bg-transparent text-gray-300 placeholder-gray-500 border-b border-gray-600 focus:outline-none focus:border-gray-400">
-      
-          <!-- Description Input -->
-          <input type="text" id="playlistDescription" placeholder="Add an optional description" class="bg-transparent text-gray-500 placeholder-gray-500 border-b border-gray-600 focus:outline-none focus:border-gray-400">
-      
-          <!-- Action Buttons with Hover Effects -->
-          <div class="flex space-x-4 mt-4">
-            <button onclick="window.location.href='{% url 'home' %}'" class="bg-gray-200 text-gray-900 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</button>
-            <button onclick="savePlaylist()" class="bg-white text-gray-900 font-semibold py-2 px-6 rounded-lg hover:bg-gray-200 hover:shadow-lg transition-shadow">Save</button>
-          </div>
+            <!-- Playlist Name Input -->
+            <input type="text" name="name" id="playlistName" placeholder="New Playlist" class="text-3xl bg-transparent text-gray-300 placeholder-gray-500 border-b border-gray-600 focus:outline-none focus:border-gray-400">
+            
+            <!-- Description Input -->
+            <input type="text" name="description" id="playlistDescription" placeholder="Add an optional description" class="bg-transparent text-gray-500 placeholder-gray-500 border-b border-gray-600 focus:outline-none focus:border-gray-400">
+            
+            <!-- Action Buttons with Hover Effects -->
+            <div class="flex space-x-4 mt-4">
+                <button type="button" onclick="window.location.href='{% url 'home' %}'" class="bg-gray-200 text-gray-900 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</button>
+                <button type="submit" class="bg-white text-gray-900 font-semibold py-2 px-6 rounded-lg hover:bg-gray-200 hover:shadow-lg transition-shadow">Save</button>
+            </div>
         </div>
-      </div>
+    </div>
+</form>
 
     <!-- Table Header -->
     <div class="mx-auto mt-6 px-4">

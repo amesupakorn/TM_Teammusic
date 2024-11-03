@@ -1,40 +1,28 @@
-function savePlaylist() {
-    // ดึงข้อมูลจากฟิลด์ input
-    const name = document.getElementById('playlistName').value;
-    const description = document.getElementById('playlistDescription').value;
-    const image = document.getElementById('playlistImage').files[0];
+const optionsButton = document.getElementById('optionsButton');
+const optionsMenu = document.getElementById('optionsMenu');
+const optionsContainer = document.getElementById('optionsContainer');
 
-    // ตรวจสอบว่าใส่ชื่อ Playlist หรือไม่
-    if (!name) {
-      alert('Please enter a playlist name');
-      return;
+// Show or hide menu on button click
+optionsButton.addEventListener('click', (event) => {
+    event.stopPropagation(); // Prevent click from reaching the document
+    optionsMenu.classList.toggle('hidden');
+});
+
+// Close menu when clicking outside of it
+document.addEventListener('click', (event) => {
+    const isClickInside = optionsContainer.contains(event.target);
+    if (!isClickInside) {
+        optionsMenu.classList.add('hidden');
     }
+});
 
-    // ส่งข้อมูลไปยัง backend โดยใช้ fetch
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('description', description);
-    if (image) formData.append('image', image);
+// Keep menu open when hovering over it or the button
+optionsContainer.addEventListener('mouseenter', () => {
+    optionsMenu.classList.remove('hidden');
+});
 
-    fetch('/teammusic/create_playlist/', {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': '{{ csrf_token }}' 
-      },
-      body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        alert('Playlist created successfully!');
-      } else {
-        alert('Failed to create playlist');
-      }
-    })
-    .catch(error => console.error('Error:', error));
-  }
 
-  function previewImage(event) {
+function previewImage(event) {
     const input = event.target;
     const preview = document.getElementById('imagePreview');
     const uploadIcon = document.getElementById('uploadIcon');
@@ -51,3 +39,43 @@ function savePlaylist() {
       reader.readAsDataURL(input.files[0]);
     }
   }
+
+
+function openModal() {
+    document.getElementById("songModal").classList.remove("hidden");
+}
+
+// ฟังก์ชันปิดโมดาล
+function closeModal() {
+    document.getElementById("songModal").classList.add("hidden");
+}
+
+function filterSongs() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const songs = document.querySelectorAll('.song-item');
+
+    songs.forEach(song => {
+        const titleElement = song.querySelector('.song-title');
+        
+        // ตรวจสอบว่า titleElement ไม่ใช่ null
+        if (titleElement) {
+            const title = titleElement.textContent.toLowerCase();
+            song.style.display = title.includes(searchTerm) ? 'flex' : 'none';
+        }
+    });
+}
+
+function filterSongsMain() {
+    const searchTerm = document.getElementById('searchInputMain').value.toLowerCase();
+    const songs = document.querySelectorAll('.song-item');
+
+    songs.forEach(song => {
+        const titleElement = song.querySelector('.song');
+        
+        // ตรวจสอบว่า titleElement ไม่ใช่ null
+        if (titleElement) {
+            const title = titleElement.textContent.toLowerCase();
+            song.style.display = title.includes(searchTerm) ? 'flex' : 'none';
+        }
+    });
+}

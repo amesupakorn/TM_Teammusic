@@ -44,7 +44,7 @@ class Playlist(models.Model):
     description = models.TextField(blank=True, null=True)   # คำอธิบายเกี่ยวกับ Playlist (optional)
     cognito_user_id = models.CharField(max_length=100, blank=True, null=True)  # เจ้าของ Playlist (Cognito User ID)
     songs = models.ManyToManyField('Song', related_name="playlists", blank=True)     # เพลงที่อยู่ใน Playlist (Many-to-Many Relationship)
-    playlist_image = models.ImageField(upload_to='img/', blank=True, null=True)
+    playlist_image = models.ImageField(upload_to='playlist/', blank=True, null=True)
     
     def __str__(self):
         return self.name
