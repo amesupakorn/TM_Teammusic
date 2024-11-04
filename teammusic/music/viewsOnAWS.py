@@ -231,6 +231,7 @@ class Albums(View):
             
         album, songs = get_album_data(id)
 
+
         if not album:
             # จัดการกรณีไม่พบ album ตามที่ต้องการ
             return render(request, "404.html")  # ตัวอย่าง: แสดงหน้าข้อผิดพลาด
@@ -240,7 +241,16 @@ class Albums(View):
         firstsongs = songs.first()
         countSong = songs.count()
         songrandom = songs.order_by('?').first()
-
+        song_list = [
+                {
+                    'title': song.title,
+                    'album': song.album.title,
+                    'albumCover': song.album.s3_alblumurl.url if song.album.s3_alblumurl else '',  
+                    'singer': singer.name,
+                    'songUrl': song.s3_url
+                }
+                for song in songs
+            ]
 
 
         return render(request, "album.html",{
@@ -251,6 +261,7 @@ class Albums(View):
             'singer' : singer,
             'firstsongs' : firstsongs,
             'songrandom': songrandom,
+            'song_list': song_list,
             'user_playlists': user_playlists,
             'has_playlists': has_playlists
         })
