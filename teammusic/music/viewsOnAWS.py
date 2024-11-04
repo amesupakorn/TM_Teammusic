@@ -8,6 +8,8 @@ from django.http import JsonResponse
 import jwt
 from .models import *
 from django.db import transaction
+from django.core.cache import cache
+
 
 
 cognito_client = boto3.client('cognito-idp', region_name=settings.COGNITO_REGION)
@@ -72,8 +74,17 @@ class MainView(View):
             has_playlists = False
 
         # ดึงข้อมูลนักร้องและอัลบั้มทั้งหมด
-        singers = Singer.objects.all()
-        albums = Album.objects.all()
+        singers = cache.get('singers')
+        albums = cache.get('albums')
+
+        if not singers:
+            singers = Singer.objects.all()
+            cache.set('singers', singers, timeout=60 * 15)  # Cache ไว้ 15 นาที
+
+        if not albums:
+            albums = Album.objects.all()
+            cache.set('albums', albums, timeout=60 * 15)  # Cache ไว้ 15 นาที
+
         
         return render(request, "index.html", {
             'username': username,
@@ -82,7 +93,36 @@ class MainView(View):
             'user_playlists': user_playlists,
             'has_playlists': has_playlists
         })
-        
+   
+def get_singer_data(id):
+    # สร้าง cache key สำหรับแต่ละ queryset
+    singer_key = f'singer_{id}'
+    albums_key = f'albums_{id}'
+    songs_key = f'songs_{id}'
+
+    # ดึงข้อมูล singer จาก cache หรือจากฐานข้อมูล
+    singer = cache.get(singer_key)
+    if not singer:
+        try:
+            singer = Singer.objects.get(id=id)
+            cache.set(singer_key, singer, timeout=60*15)  # Cache ไว้ 15 นาที
+        except Singer.DoesNotExist:
+            return None, None, None  # หรือจัดการตามที่ต้องการในกรณีไม่พบ
+
+    # ดึงข้อมูล albums ของ singer จาก cache หรือจากฐานข้อมูล
+    albums = cache.get(albums_key)
+    if not albums:
+        albums = Album.objects.filter(singer=singer)
+        cache.set(albums_key, albums, timeout=60*15)  # Cache ไว้ 15 นาที
+
+    # ดึงข้อมูล songs ของ albums จาก cache หรือจากฐานข้อมูล
+    songs = cache.get(songs_key)
+    if not songs:
+        songs = Song.objects.filter(album__in=albums)
+        cache.set(songs_key, songs, timeout=60*15)  # Cache ไว้ 15 นาที
+
+    return singer, albums, songs
+    
 class Artlist(View):
     def get(self, request, id):
         access_token = request.session.get('access_token')
@@ -105,9 +145,11 @@ class Artlist(View):
             has_playlists = False
         
         # ดึงข้อมูลนักร้อง อัลบั้ม และเพลงทั้งหมดของนักร้องนี้
-        singer = Singer.objects.get(id=id)
-        albums = Album.objects.filter(singer=singer)
-        songs = Song.objects.filter(album__in=albums)
+        singer, albums, songs = get_singer_data(id)
+
+        if not singer:
+            # จัดการกรณีไม่พบ singer ตามที่ต้องการ
+            return render(request, "404.html")  # ตัวอย่าง: แสดงหน้าข้อผิดพลาด
 
         # สร้างรายการเพลง (song list) เป็น dictionary
         song_list = [
@@ -140,7 +182,30 @@ class Artlist(View):
         }
 
         return render(request, "artlist.html", context)
-        
+    
+
+def get_album_data(id):
+    # สร้าง cache key สำหรับ album และ songs
+    album_key = f'album_{id}'
+    songs_key = f'songs_{id}'
+
+    # ดึงข้อมูล album จาก cache หรือจากฐานข้อมูล
+    album = cache.get(album_key)
+    if not album:
+        try:
+            album = Album.objects.get(id=id)
+            cache.set(album_key, album, timeout=60*15)  # Cache ไว้ 15 นาที
+        except Album.DoesNotExist:
+            return None, None  # หรือจัดการตามที่ต้องการในกรณีไม่พบ
+
+    # ดึงข้อมูล songs ของ album จาก cache หรือจากฐานข้อมูล
+    songs = cache.get(songs_key)
+    if not songs:
+        songs = Song.objects.filter(album_id=id)
+        cache.set(songs_key, songs, timeout=60*15)  # Cache ไว้ 15 นาที
+
+    return album, songs
+    
 class Albums(View):
     
     def get(self, request, id):
@@ -164,8 +229,13 @@ class Albums(View):
             has_playlists = False
         
             
-        album = Album.objects.get(id=id)
-        songs = Song.objects.filter(album_id=id)  
+        album, songs = get_album_data(id)
+
+        if not album:
+            # จัดการกรณีไม่พบ album ตามที่ต้องการ
+            return render(request, "404.html")  # ตัวอย่าง: แสดงหน้าข้อผิดพลาด
+            
+        
         singer = album.singer  # ใช้ album.singer เพื่อดึงข้อมูลนักร้องที่เกี่ยวข้อง
         firstsongs = songs.first()
         countSong = songs.count()
@@ -403,6 +473,36 @@ class CreatePlayList(View):
 
 from .forms import PlaylistForm  
 
+def get_playlist_data(id):
+    # สร้าง cache key สำหรับ playlist, song_count, และ songs
+    playlist_key = f'playlist_{id}'
+    song_count_key = f'playlist_{id}_song_count'
+    songs_key = f'playlist_{id}_songs'
+
+    # ดึงข้อมูล playlist จาก cache หรือจากฐานข้อมูล
+    playlist = cache.get(playlist_key)
+    if not playlist:
+        try:
+            playlist = Playlist.objects.get(id=id)
+            cache.set(playlist_key, playlist, timeout=60*15)  # Cache ไว้ 15 นาที
+        except Playlist.DoesNotExist:
+            return None, 0, []  # กรณีไม่พบ playlist
+
+    # ดึงข้อมูล song_count จาก cache หรือจากฐานข้อมูล
+    song_count = cache.get(song_count_key)
+    if song_count is None:
+        song_count = playlist.songs.count()
+        cache.set(song_count_key, song_count, timeout=60*15)  # Cache ไว้ 15 นาที
+
+    # ดึงข้อมูล songs จาก cache หรือจากฐานข้อมูล
+    songs = cache.get(songs_key)
+    if not songs:
+        songs = list(playlist.songs.all())  # แปลงเป็น list ก่อนเก็บใน cache
+        cache.set(songs_key, songs, timeout=60*15)  # Cache ไว้ 15 นาที
+
+    return playlist, song_count, songs
+    
+    
 class EditPlayList(View):
     def get(self, request, id):
         access_token = request.session.get('access_token')
@@ -424,9 +524,11 @@ class EditPlayList(View):
             user_playlists = []
             has_playlists = False
       
-        playlist = Playlist.objects.get(id=id)
-        song_count = playlist.songs.count()
-        songs = playlist.songs.all()
+        playlist, song_count, songs = get_playlist_data(id)
+
+        if not playlist:
+        # จัดการกรณีไม่พบ playlist ตามที่ต้องการ
+            return render(request, "404.html")  # ตัวอย่าง: แสดงหน้าข้อผิดพลาด
 
         return render(request, "editPlaylist.html",{
             'username': username,
@@ -465,6 +567,7 @@ def delete_playlist(request, id):
     return redirect('home')
 
 
+
 def remove_song_from_playlist(request, playlist_id, song_id):
     if request.method == 'POST':
         try:
@@ -476,6 +579,23 @@ def remove_song_from_playlist(request, playlist_id, song_id):
             return JsonResponse({'success': False, 'message': str(e)}, status=400)
     return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
 
+
+def get_cached_playlist(id):
+    # สร้าง cache key สำหรับ playlist
+    playlist_key = f'playlist_{id}'
+
+    # ตรวจสอบว่ามีข้อมูล playlist ใน cache หรือไม่
+    playlist = cache.get(playlist_key)
+    if not playlist:
+        try:
+            # ดึงข้อมูลจากฐานข้อมูลหากไม่มีใน cache
+            playlist = Playlist.objects.get(id=id)
+            cache.set(playlist_key, playlist, timeout=60*15)  # Cache ไว้ 15 นาที
+        except Playlist.DoesNotExist:
+            return None  # กรณีไม่พบ playlist
+
+    return playlist
+    
 class PlayListView(View):
      def get(self, request, id):
         access_token = request.session.get('access_token')
@@ -497,14 +617,20 @@ class PlayListView(View):
             user_playlists = []
             has_playlists = False
             
-        playlist = Playlist.objects.get(id=id)
+        playlist = get_cached_playlist(id)
+
+        if not playlist:
+            # จัดการกรณีไม่พบ playlist ตามที่ต้องการ
+            return render(request, "404.html")  # ตัวอย่าง: แสดงหน้าข้อผิดพลาด
+        
         song_count = playlist.songs.count()
+        
         songs = playlist.songs.all()
         firstsongs = songs.first()
         songrandom = songs.order_by('?').first()
         
         share_url = request.build_absolute_uri(playlist.get_share_url())
-        
+
         songall = Song.objects.all()
         return render(request, "playlist.html",{
             'username': username,
@@ -536,6 +662,9 @@ def add_song_to_playlist(request, playlist_id, song_id):
     playlist.songs.add(song)
     messages.success(request, 'Add song completes.')
     return redirect('viewPlaylist', id=playlist_id)
+
+
+
 
 
 def share_playlist(request, share_token):

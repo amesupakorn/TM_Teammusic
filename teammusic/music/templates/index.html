@@ -8,7 +8,7 @@
 					<!-- Artist Card -->
 					{% for singer in singer %}
 					<div class="relative group overflow-hidden text-center w-48 flex-shrink-0 p-4 rounded-xl" onclick="window.location.href='{% url 'artist' singer.id %}'">
-						<img src="{{ singer.s3_photourl.url }}" alt="{{ singer.name }}" class="w-42
+						<img src="{% static singer.s3_photourl.url %}" alt="{{ singer.name }}" class="w-42
 						h-42
 						object-cover rounded-full mx-auto">
 						
@@ -38,7 +38,7 @@
 					{% for album in album  %}
 
 					<div class="relative group overflow-hidden text-center w-52 flex-shrink-0 p-4 rounded-xl" onclick="window.location.href='{% url 'albums' album.id %}'" >
-						<img src="{{ album.s3_alblumurl.url }}" class="rounded-2xl w-full h-48 object-cover mb-2">
+						<img src="{% static album.s3_alblumurl.url %}" class="rounded-2xl w-full h-48 object-cover mb-2">
 
 					
 						<div class="absolute inset-0 bg-gradient-to-t from-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>

@@ -8,3 +8,4 @@ boto3
 Pillow
 django-redis
 psycopg
+PyJWT
